@@ -22,10 +22,8 @@ class Core:
         for sub in self.subs:
             sub.kill()
 
-        if self.mqtt:
-            self.mqtt.stop()
-
-        self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_topic)
+        
+        #self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_topic)
 
         for cam in self.config.Cameras:
             logger.info(f"Setting up camera {cam.name}")

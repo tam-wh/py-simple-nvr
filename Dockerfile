@@ -1,18 +1,22 @@
 FROM python:3.9.5-slim-buster
 LABEL maintainer="tam-wh"
 
-VOLUME /config
+ENV FFMPEG_URL  https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget xz-utils \
+    && mkdir -p /tmp/ffmpeg \
+    && cd /tmp/ffmpeg \
+    && wget -O ffmpeg.tar.xz "$FFMPEG_URL" \
+    && tar -xf ffmpeg.tar.xz -C . --strip-components 1 \
+    && cp ffmpeg ffprobe qt-faststart /usr/bin \
+    && cd .. \
+    && rm -fr /tmp/ffmpeg \
+    && apt-get purge -y --auto-remove wget xz-utils \
+    && rm -fr /var/lib/apt/lists/*
 
 RUN mkdir app
 WORKDIR /app
 COPY . /app
-
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install --no-install-recommends -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && (apt-get autoremove -y; apt-get autoclean -y)
 
 RUN pip3 install --no-cache-dir --upgrade paho-mqtt pyyaml
 
