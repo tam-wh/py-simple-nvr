@@ -11,7 +11,6 @@ RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y \
     ffmpeg \
-    libva-drm2 libva2 libmfx1 i965-va-driver vainfo intel-media-va-driver mesa-va-drivers \
     && rm -rf /var/lib/apt/lists/* \
     && (apt-get autoremove -y; apt-get autoclean -y)
 
