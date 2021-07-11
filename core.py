@@ -26,34 +26,51 @@ class Core:
         #self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_topic)
 
         for cam in self.config.Cameras:
-            logger.info(f"Setting up camera {cam.name}")
+            logger.warning(f"Setting up camera {cam.name}")
 
-            local_stream = f'rtsp://{self.config.rtsp_host}:8554/live/{cam.name}'
-            cmd = f'ffmpeg \
-                -loglevel {self.config.log_level} \
-                -stimeout 1000000 \
-                -use_wallclock_as_timestamps 1 \
-                -rtsp_transport tcp \
-                -i "{cam.stream}" \
-                -rtsp_transport tcp \
-                -c:v copy \
-                -c:a copy \
-                -f rtsp \
-                {local_stream} '
-            
-            logger.info(f"Setting up recording")
+            cmd = ['ffmpeg', 
+                '-loglevel', self.config.log_level,
+                '-stimeout', '1000000',
+                '-fflags', '+genpts+discardcorrupt',
+                '-use_wallclock_as_timestamps', '1',
+                '-rtsp_transport', 'tcp',
+                '-i', cam.stream]
+
+            if cam.rtsp:
+                rtsp_stream = f'rtsp://{self.config.rtsp_host}:8554/live/{cam.name}'
+                rtsp_cmd = ['-rtsp_transport', 'tcp',
+                    '-c:v', 'copy',
+                    '-c:a', 'copy',
+                    '-f', 'rtsp',
+                    rtsp_stream]
+
+                cmd = cmd + rtsp_cmd
+                logger.warning(f"RTSP stream ready here: {rtsp_stream}")
+
+            if cam.rtmp:
+                rtmp_stream = f'rtmp://{self.config.rtmp_host}:1936/live/{cam.name}'
+                rtmp_cmd = ['-c:v', 'copy',
+                    '-an',
+                    '-f', 'flv',
+                    rtmp_stream]
+
+                cmd = cmd + rtmp_cmd
+                logger.warning(f"RTMP stream ready here: {rtmp_stream}")
+
             if cam.record:
-                cmd = cmd + \
-                f'-c copy \
-                -c:a aac \
-                -f segment \
-                -segment_time {self.config.record_segment_length} \
-                -segment_atclocktime 1 \
-                -segment_format mp4 \
-                -reset_timestamps 1 \
-                -strftime 1 \
-                "{self.config.record_dir}/{cam.name}_%Y%m%d_%H-%M-%S.mp4"'
+                rec_cmd = [
+                '-f', 'segment',
+                '-segment_time', f'{self.config.record_segment_length}',
+                '-segment_atclocktime', '1',
+                '-segment_format', 'mp4',
+                '-reset_timestamps', '1',
+                '-strftime', '1',
+                f'{os.path.join(self.config.record_dir, cam.name, )}_%Y%m%d_%H-%M-%S.mp4']   
 
+                cmd = cmd + cam.inputs + rec_cmd
+                logger.warning(f"Setting up recording")    
+
+            logger.info(cmd)
             sub = subprocess.Popen(cmd)
             
             self.subs.append(sub)

@@ -10,9 +10,10 @@ class Config:
         self.Cameras = []
 
         for cam in settings['cameras']:
-            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions']))
+            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions'], cam['inputs']))
         
         self.rtsp_host = settings['global']['rtsp_host']
+        self.rtmp_host = settings['global']['rtmp_host']
         self.record_dir = settings['global']['record_dir']
         self.record_segment_length = settings['global']['record_segment_length']
         self.log_level = settings['global']['log_level']
