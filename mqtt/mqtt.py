@@ -7,7 +7,7 @@ class Mqtt:
 
     def on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic,1)
-        print("Connected with result code "+str(rc))
+        logger.warning("Connected with result code "+str(rc))
 
     def on_publish(self, client,userdata,result):
         print("Data published")
@@ -22,12 +22,12 @@ class Mqtt:
     def __init__(self, address, port, username, password, topic) -> None:
         
         self.topic = topic
-        self.client = mqtt.Client("pyainvr") 
+        self.client = mqtt.Client("pyainvr1") 
         self.client.on_connect = self.on_connect
         self.client.on_publish = self.on_publish
         self.client.on_message = self.on_message
         self.client.username_pw_set(username=username,password=password)
-        print("Connecting...")
+        logger.info("Connecting...")
         self.client.connect(address, port)
         self.client.loop_start()
 

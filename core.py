@@ -8,6 +8,8 @@ from mqtt import Mqtt
 from subprocess import PIPE, STDOUT
 import time
 
+from log import LogPipe
+
 logger = logging.getLogger(__name__)
 
 class Core:
@@ -20,23 +22,23 @@ class Core:
         self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_topic)
         self.mqtt.subscribe('pyainvr/actions/stop', self.kill_all)
         self.mqtt.subscribe('pyainvr/actions/start', self.reload_config)
-
+        
+        logging.basicConfig()
+        logger.setLevel(logging.WARNING)
         self.reload_config()
 
     def kill_all(self):
-        for sub in self.subs:
-            os.kill(sub.pid, signal.SIGINT)
-            sub.wait()
+        for proc in self.subs:
+            os.kill(proc.pid, signal.SIGINT)
+            proc.wait()
             logger.warning("Killing process")
 
         self.subs.clear()
 
-    def log_subprocess_output(self, pipe):
-        for line in iter(pipe.readline, b''): # b'\n'-separated lines
-            logger.info('got line from subprocess: %r', line)
 
     def run_cam(self, cam):
         logger.warning(f"Setting up camera {cam.name}")
+        logpipe = LogPipe(cam.name, logging.INFO)
 
         cmd = ['ffmpeg', 
             '-loglevel', self.config.log_level,
@@ -82,21 +84,8 @@ class Core:
 
         logger.info(cmd)
 
-        # proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        # self.subs.append(proc)
-        # stdout, stderr = await proc.communicate()
-
-        # logger.info(f'[{cmd!r} exited with {proc.returncode}]')
-        # if stdout:
-        #     logger.info(f'[stdout]\n{stdout.decode()}')
-        # if stderr:
-        #     logger.info(f'[stderr]\n{stderr.decode()}')
-
-        sub = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)            
+        sub = subprocess.Popen(cmd, stdout = logpipe, stderr=logpipe)
         self.subs.append(sub)
-
-        # with sub.stdout:
-        #     self.log_subprocess_output(sub.stdout)
 
     def reload_config(self):
         
@@ -105,13 +94,6 @@ class Core:
 
         for cam in self.config.Cameras:
             self.run_cam(cam)
-
-        # tasks = []
-        # for cam in self.config.Cameras:
-        #     tasks.append(asyncio.create_task(self.run_cam(cam)))
-        
-        # await asyncio.gather(*tasks)
-
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.kill_all()
