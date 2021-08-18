@@ -2,7 +2,6 @@ import os
 import signal
 import subprocess
 import logging
-import asyncio
 from config import Config
 from mqtt import Mqtt
 from subprocess import PIPE, STDOUT
@@ -25,75 +24,21 @@ class Core:
         
         logging.basicConfig()
         logger.setLevel(logging.WARNING)
+
         self.reload_config()
 
     def kill_all(self):
-        for proc in self.subs:
-            os.kill(proc.pid, signal.SIGINT)
-            proc.wait()
-            logger.warning("Killing process")
 
-        self.subs.clear()
-
-
-    def run_cam(self, cam):
-        logger.warning(f"Setting up camera {cam.name}")
-        logpipe = LogPipe(cam.name, logging.INFO)
-
-        cmd = ['ffmpeg', 
-            '-loglevel', self.config.log_level,
-            '-stimeout', '1000000',
-            '-fflags', '+genpts+discardcorrupt',
-            '-use_wallclock_as_timestamps', '1',
-            '-rtsp_transport', 'tcp',
-            '-i', cam.stream]
-
-        if cam.rtsp:
-            rtsp_stream = f'rtsp://{self.config.rtsp_host}:8554/live/{cam.name}'
-            rtsp_cmd = ['-rtsp_transport', 'tcp',
-                '-c:v', 'copy',
-                '-c:a', 'copy',
-                '-f', 'rtsp',
-                rtsp_stream]
-
-            cmd = cmd + rtsp_cmd
-            logger.warning(f"RTSP stream ready here: {rtsp_stream}")
-
-        if cam.rtmp:
-            rtmp_stream = f'rtmp://{self.config.rtmp_host}:1936/live/{cam.name}'
-            rtmp_cmd = ['-c:v', 'copy',
-                '-an',
-                '-f', 'flv',
-                rtmp_stream]
-
-            cmd = cmd + rtmp_cmd
-            logger.warning(f"RTMP stream ready here: {rtmp_stream}")
-
-        if cam.record:
-            rec_cmd = [
-            '-f', 'segment',
-            '-segment_time', f'{self.config.record_segment_length}',
-            '-segment_atclocktime', '1',
-            '-segment_format', 'mp4',
-            '-reset_timestamps', '1',
-            '-strftime', '1',
-            f'{os.path.join(self.config.record_dir, cam.name, )}_%Y%m%d_%H-%M-%S.mp4']   
-
-            cmd = cmd + cam.inputs + rec_cmd
-            logger.warning(f"Setting up recording")    
-
-        logger.info(cmd)
-
-        sub = subprocess.Popen(cmd, stdout = logpipe, stderr=logpipe)
-        self.subs.append(sub)
+         for cam in self.config.Cameras:
+            cam.kill()
 
     def reload_config(self):
         
         # Kill existing process
-        self.kill_all()
+        # self.kill_all()
 
         for cam in self.config.Cameras:
-            self.run_cam(cam)
+            cam.start(self.config)
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.kill_all()

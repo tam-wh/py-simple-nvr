@@ -1,5 +1,7 @@
+import os
 import logging
 import subprocess
+import signal
 from subprocess import PIPE, STDOUT
 
 from log import LogPipe
@@ -35,14 +37,24 @@ class Camera:
             self.alarm = True
         
         self.inputs = inputs
-            
+
+        self.logpipe = LogPipe(self.name, logging.INFO)
+
         pass
 
 
-    def start(self, cam, config):
+    def start(self, config):
 
-        logger.warning(f"Setting up camera {cam.name}")
-        self.logpipe = LogPipe(cam.name, logging.INFO)
+        logger.warning(f"Setting up camera {self.name}")
+
+        try:
+            if self.proc.poll() is not None:
+                logger.warning("Process has closed")
+            else:
+                logger.error("Recording already started")
+                return
+        except AttributeError:
+            logger.warning("Camera process has not started")
 
         cmd = ['ffmpeg', 
             '-loglevel', config.log_level,
@@ -50,10 +62,10 @@ class Camera:
             '-fflags', '+genpts+discardcorrupt',
             '-use_wallclock_as_timestamps', '1',
             '-rtsp_transport', 'tcp',
-            '-i', cam.stream]
+            '-i', self.stream]
 
-        if cam.rtsp:
-            rtsp_stream = f'rtsp://{config.rtsp_host}:8554/live/{cam.name}'
+        if self.rtsp:
+            rtsp_stream = f'rtsp://{config.rtsp_host}:8554/live/{self.name}'
             rtsp_cmd = ['-rtsp_transport', 'tcp',
                 '-c:v', 'copy',
                 '-c:a', 'copy',
@@ -63,8 +75,8 @@ class Camera:
             cmd = cmd + rtsp_cmd
             logger.warning(f"RTSP stream ready here: {rtsp_stream}")
 
-        if cam.rtmp:
-            rtmp_stream = f'rtmp://{config.rtmp_host}:1936/live/{cam.name}'
+        if self.rtmp:
+            rtmp_stream = f'rtmp://{config.rtmp_host}:1936/live/{self.name}'
             rtmp_cmd = ['-c:v', 'copy',
                 '-an',
                 '-f', 'flv',
@@ -73,7 +85,7 @@ class Camera:
             cmd = cmd + rtmp_cmd
             logger.warning(f"RTMP stream ready here: {rtmp_stream}")
 
-        if cam.record:
+        if self.record:
             rec_cmd = [
             '-f', 'segment',
             '-segment_time', f'{config.record_segment_length}',
@@ -81,9 +93,9 @@ class Camera:
             '-segment_format', 'mp4',
             '-reset_timestamps', '1',
             '-strftime', '1',
-            f'{os.path.join(config.record_dir, cam.name, )}_%Y%m%d_%H-%M-%S.mp4']   
+            f'{os.path.join(config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.mp4']   
 
-            cmd = cmd + cam.inputs + rec_cmd
+            cmd = cmd + self.inputs + rec_cmd
             logger.warning(f"Setting up recording")    
 
         logger.info(cmd)
@@ -91,7 +103,23 @@ class Camera:
         self.proc = subprocess.Popen(cmd, stdout = self.logpipe, stderr=self.logpipe)
     
     def kill(self):
+
+        try:
+            if self.proc.poll() is not None:
+                logger.warning("Process has closed")
+                return
+
+            os.kill(self.proc.pid, signal.SIGINT)
+            logger.warning("Killing process")
+
+            self.proc.communicate(timeout=30)
+            logger.warning("Process killed")
+
+        except subprocess.TimeoutExpired:
+            logger.warning("ffmpeg not responding")
+            self.proc.kill()
+            self.proc.communicate()
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.logpipe.close()
-        os.kill(self.proc.pid, signal.SIGINT)
-        proc.wait()
-        logger.warning("Killing process")
+        pass
