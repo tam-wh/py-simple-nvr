@@ -23,6 +23,10 @@ class Config:
         self.mqtt_username = settings['mqtt']['username']
         self.mqtt_password = settings['mqtt']['password']
         self.mqtt_topic = settings['mqtt']['topic']
+        self.mqtt_clientname = settings['mqtt']['clientname']
+        
+        self.alarmserver_port = settings['alarmserver']['port']
+        self.alarmserver_enabled = settings['alarmserver']['enabled']
 
 if __name__ == '__main__':
     Config().read()

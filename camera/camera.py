@@ -58,7 +58,7 @@ class Camera:
 
         cmd = ['ffmpeg', 
             '-loglevel', config.log_level,
-            '-stimeout', '1000000',
+            '-stimeout', '5000000',
             '-fflags', '+genpts+discardcorrupt',
             '-use_wallclock_as_timestamps', '1',
             '-rtsp_transport', 'tcp',
@@ -119,6 +119,8 @@ class Camera:
             logger.warning("ffmpeg not responding")
             self.proc.kill()
             self.proc.communicate()
+        
+        self.proc = None
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.logpipe.close()

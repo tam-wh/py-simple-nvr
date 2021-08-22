@@ -3,7 +3,7 @@ import threading
 import os
 import subprocess
 
-logging.basicConfig(format='%(levelname)s\t[%(name)s]\t%(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s  %(levelname)s\t[%(name)s]\t%(message)s', datefmt= "%Y-%m-%d %H:%M:%S", level=logging.INFO)
 
 class LogPipe(threading.Thread):
 

@@ -19,10 +19,10 @@ class Mqtt:
         if action != None:
             action()
 
-    def __init__(self, address, port, username, password, topic) -> None:
+    def __init__(self, address, port, username, password, topic, clientname) -> None:
         
         self.topic = topic
-        self.client = mqtt.Client("pyainvr1") 
+        self.client = mqtt.Client(clientname) 
         self.client.on_connect = self.on_connect
         self.client.on_publish = self.on_publish
         self.client.on_message = self.on_message
