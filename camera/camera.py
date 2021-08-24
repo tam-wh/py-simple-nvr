@@ -119,7 +119,10 @@ class Camera:
             logger.warning("ffmpeg not responding")
             self.proc.kill()
             self.proc.communicate()
-        
+
+        except AttributeError:
+            logger.warning("Camera process has not started")
+
         self.proc = None
 
     def __exit__(self, exc_type, exc_value, traceback):
