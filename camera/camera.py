@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class Camera:
 
-    def __init__(self, name, stream, actions, inputs) -> None:
+    def __init__(self, name, stream, actions, inputs, format) -> None:
         
         self.name = name
         self.stream = stream
@@ -37,6 +37,7 @@ class Camera:
             self.alarm = True
         
         self.inputs = inputs
+        self.format = format
 
         self.logpipe = LogPipe(self.name, logging.INFO)
 
@@ -90,10 +91,10 @@ class Camera:
             '-f', 'segment',
             '-segment_time', f'{config.record_segment_length}',
             '-segment_atclocktime', '1',
-            '-segment_format', 'mp4',
+            '-segment_format', self.format,
             '-reset_timestamps', '1',
             '-strftime', '1',
-            f'{os.path.join(config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.mp4']   
+            f'{os.path.join(config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.{self.format}']   
 
             cmd = cmd + self.inputs + rec_cmd
             logger.warning(f"Setting up recording")    

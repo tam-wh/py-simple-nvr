@@ -10,7 +10,7 @@ class Config:
         self.Cameras = []
 
         for cam in settings['cameras']:
-            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions'], cam['inputs']))
+            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions'], cam['inputs'], cam['format']))
         
         self.rtsp_host = settings['global']['rtsp_host']
         self.rtmp_host = settings['global']['rtmp_host']
