@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 class Mqtt:
 
     def on_connect(self, client, userdata, flags, rc):
-        for sub in self.subscriptions:
-            self.client.subscribe(sub[topic], qos=0)
+        for topic in self.subscriptions.keys():
+            self.client.subscribe(topic, qos=0)
             
         logger.warning("Connected with result code "+str(rc))
 
