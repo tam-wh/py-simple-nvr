@@ -20,4 +20,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    app.run()
+    app.run(port=5001)
