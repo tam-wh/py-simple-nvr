@@ -20,5 +20,6 @@ RUN mkdir app
 WORKDIR /app
 COPY . /app
 
+EXPOSE 5001
 
 CMD [ "python", "./__main__.py" ]
