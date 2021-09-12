@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget xz-utils \
     && apt-get purge -y --auto-remove wget xz-utils \
     && rm -fr /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir --upgrade paho-mqtt pyyaml
+RUN pip3 install --no-cache-dir --upgrade paho-mqtt pyyaml flask
 
 RUN mkdir app
 WORKDIR /app
