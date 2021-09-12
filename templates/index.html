@@ -1,0 +1,13 @@
+
+{% block body %}
+<body class="body">
+	  <div class="container">
+        <ul class="collection with-header">
+            <li class="collection-header"><h4><b>{{ list_header }}</b></h4></li>
+            {% for cam in cams %}
+                <li class="collection-item"><a href="#">{{ cam.name }}</a></li>
+            {% endfor %}
+        </ul>
+	  </div>
+</body>
+{% endblock %}

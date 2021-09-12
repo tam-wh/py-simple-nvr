@@ -6,7 +6,9 @@ logger = logging.getLogger(__name__)
 class Mqtt:
 
     def on_connect(self, client, userdata, flags, rc):
-        client.subscribe(self.topic,1)
+        for sub in self.subscriptions:
+            self.client.subscribe(sub[topic], qos=0)
+            
         logger.warning("Connected with result code "+str(rc))
 
     def on_publish(self, client,userdata,result):
@@ -38,5 +40,4 @@ class Mqtt:
     
     def subscribe(self, topic, action):
         self.subscriptions[topic] = action
-        self.client.subscribe(topic, qos=0)
 
