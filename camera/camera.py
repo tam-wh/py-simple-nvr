@@ -103,10 +103,19 @@ class Camera:
 
         self.proc = subprocess.Popen(cmd, stdout = self.logpipe, stderr=self.logpipe)
     
+    def hasStarted(self):
+        try:
+            if self.proc.poll() is not None:
+                return False
+        except AttributeError:
+            return False
+        
+        return True
+
     def kill(self):
 
         try:
-            if self.proc.poll() is not None:
+            if not self.hasStarted():
                 logger.warning("Process has closed")
                 return
 
@@ -120,9 +129,6 @@ class Camera:
             logger.warning("ffmpeg not responding")
             self.proc.kill()
             self.proc.communicate()
-
-        except AttributeError:
-            logger.warning("Camera process has not started")
 
         self.proc = None
 

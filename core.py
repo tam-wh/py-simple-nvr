@@ -17,9 +17,9 @@ class Core:
     def __init__(self):
         self.config = Config()
         self.config.read()
-        self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_topic, self.config.mqtt_clientname)
-        self.mqtt.subscribe('pyainvr/actions/stop', self.kill_all)
-        self.mqtt.subscribe('pyainvr/actions/start', self.reload_config)
+        self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_clientname)
+        self.mqtt.subscribe('pyainvr/state/set', "off", self.kill_all)
+        self.mqtt.subscribe('pyainvr/state/set', "on", self.reload_config)
         
         logging.basicConfig()
         logger.setLevel(logging.WARNING)

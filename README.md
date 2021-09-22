@@ -1,10 +1,13 @@
-example of config.yaml
+## WebUI
+
+http://localhost:5001
+
 
 ## Format
 mkv = Choose mkv if audio is PCM. MKV allows pcm audio which means audio stream does not need to be transcoded
 mp4 = Choose mp4 if audio is AAC
 
-
+## Example of config.yaml
 ```
 global:
   record_dir: c:\records
@@ -46,6 +49,5 @@ mqtt:
   port: 1883
   username: USERNAME
   password: 'PASSWORD'
-  topic: pyainvr/actions
   clientname: pyainvr
   ```

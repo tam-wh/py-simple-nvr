@@ -17,13 +17,14 @@ class Mqtt:
 
     def on_message(self, client, userdata, message):
         logger.warning("Received message '" + str(message.payload) + "' on topic '" + message.topic + "' with QoS " + str(message.qos))
-        action = self.subscriptions.get(message.topic)
-        if action != None:
-            action()
+        actionDict = self.subscriptions.get(message.topic)
+        if actionDict != None:
+            action = actionDict.get(str(message.payload.decode("utf-8")))
+            if action != None:
+                action()
 
-    def __init__(self, address, port, username, password, topic, clientname) -> None:
+    def __init__(self, address, port, username, password, clientname) -> None:
         
-        self.topic = topic
         self.client = mqtt.Client(clientname) 
         self.client.on_connect = self.on_connect
         self.client.on_publish = self.on_publish
@@ -38,6 +39,9 @@ class Mqtt:
     def stop(self):
         self.client.loop_stop() 
     
-    def subscribe(self, topic, action):
-        self.subscriptions[topic] = action
+    def subscribe(self, topic, payload, action):
+        if not topic in self.subscriptions:
+            self.subscriptions[topic] = {}
+        
+        self.subscriptions[topic][payload] = action
 

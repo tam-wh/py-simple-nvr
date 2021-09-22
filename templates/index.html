@@ -1,13 +1,30 @@
+<html>
+<head>
+    <link href="/static/bootstrap.min.css" rel="stylesheet" >
+</head>
 
 {% block body %}
 <body class="body">
 	  <div class="container">
-        <ul class="collection with-header">
-            <li class="collection-header"><h4><b>{{ list_header }}</b></h4></li>
+        <h1>{{ list_header }}</h1>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Camera Name</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
             {% for cam in cams %}
-                <li class="collection-item"><a href="#">{{ cam.name }}</a></li>
+              <tr>
+                <th scope="row">{{ cam.name }}</th>
+                <td>{{ cam.hasStarted() }}</td>
+              </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+          </table>
 	  </div>
 </body>
 {% endblock %}
+
+</html>

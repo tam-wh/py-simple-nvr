@@ -22,7 +22,6 @@ class Config:
         self.mqtt_port = settings['mqtt']['port']
         self.mqtt_username = settings['mqtt']['username']
         self.mqtt_password = settings['mqtt']['password']
-        self.mqtt_topic = settings['mqtt']['topic']
         self.mqtt_clientname = settings['mqtt']['clientname']
         
         self.alarmserver_port = settings['alarmserver']['port']
