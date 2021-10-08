@@ -49,4 +49,7 @@ class Mqtt:
             self.subscriptions[topic] = {}
         
         self.subscriptions[topic][payload] = action
+    
+    def publish(self, topic, payload):
+        self.client.publish(topic, payload)  
 
