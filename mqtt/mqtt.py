@@ -24,17 +24,22 @@ class Mqtt:
                 action()
 
     def __init__(self, address, port, username, password, clientname) -> None:
-        
+
+        self.address = address
+        self.port = port
+
         self.client = mqtt.Client(clientname) 
         self.client.on_connect = self.on_connect
         self.client.on_publish = self.on_publish
         self.client.on_message = self.on_message
         self.client.username_pw_set(username=username,password=password)
         logger.info("Connecting...")
-        self.client.connect(address, port)
-        self.client.loop_start()
 
         self.subscriptions = {}
+    
+    def start(self):
+        self.client.connect(self.address, self.port)
+        self.client.loop_start()
 
     def stop(self):
         self.client.loop_stop() 

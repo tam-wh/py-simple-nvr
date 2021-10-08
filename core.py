@@ -8,7 +8,6 @@ from subprocess import PIPE, STDOUT
 import time
 
 from alarmserver import AlarmServer
-from log import LogPipe
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,8 @@ class Core:
         self.mqtt = Mqtt(self.config.mqtt_address, self.config.mqtt_port, self.config.mqtt_username, self.config.mqtt_password, self.config.mqtt_clientname)
         self.mqtt.subscribe('pyainvr/state/set', "off", self.kill_all)
         self.mqtt.subscribe('pyainvr/state/set', "on", self.reload_config)
-        
+        self.mqtt.start()
+
         logging.basicConfig()
         logger.setLevel(logging.WARNING)
 
