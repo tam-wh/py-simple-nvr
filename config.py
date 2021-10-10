@@ -7,11 +7,6 @@ class Config:
         with open('config.yaml', 'r') as file:
             settings = yaml.load(file, Loader=yaml.FullLoader)
 
-        self.Cameras = []
-
-        for cam in settings['cameras']:
-            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions'], cam['inputs'], cam['format']))
-        
         self.rtsp_host = settings['global']['rtsp_host']
         self.rtmp_host = settings['global']['rtmp_host']
         self.record_dir = settings['global']['record_dir']
@@ -26,6 +21,14 @@ class Config:
         
         self.alarmserver_port = settings['alarmserver']['port']
         self.alarmserver_enabled = settings['alarmserver']['enabled']
+        
+        self.Cameras = []
+
+        for cam in settings['cameras']:
+            if cam.get('deviceid') == None:
+                cam['deviceid'] = ''
+
+            self.Cameras.append(Camera(cam['name'], cam['stream'], cam['actions'], cam['inputs'], cam['format'], cam['deviceid'], self))
 
 if __name__ == '__main__':
     Config().read()

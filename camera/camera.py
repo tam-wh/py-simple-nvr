@@ -3,6 +3,8 @@ import logging
 import subprocess
 import signal
 from subprocess import PIPE, STDOUT
+import time
+from threading import Timer
 
 from log import LogPipe
 
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Camera:
 
-    def __init__(self, name, stream, actions, inputs, format) -> None:
+    def __init__(self, name, stream, actions, inputs, format, deviceid, config) -> None:
         
         self.name = name
         self.stream = stream
@@ -38,13 +40,15 @@ class Camera:
         
         self.inputs = inputs
         self.format = format
+        self.config = config
+        self.deviceid = deviceid
 
         self.logpipe = LogPipe(self.name, logging.INFO)
 
         pass
 
 
-    def start(self, config):
+    def start(self):
 
         logger.warning(f"Setting up camera {self.name}")
 
@@ -58,7 +62,7 @@ class Camera:
             logger.warning("Camera process has not started")
 
         cmd = ['ffmpeg', 
-            '-loglevel', config.log_level,
+            '-loglevel', self.config.log_level,
             '-stimeout', '5000000',
             '-fflags', '+genpts+discardcorrupt',
             '-use_wallclock_as_timestamps', '1',
@@ -66,7 +70,7 @@ class Camera:
             '-i', self.stream]
 
         if self.rtsp:
-            rtsp_stream = f'rtsp://{config.rtsp_host}:8554/live/{self.name}'
+            rtsp_stream = f'rtsp://{self.config.rtsp_host}:8554/live/{self.name}'
             rtsp_cmd = ['-rtsp_transport', 'tcp',
                 '-c:v', 'copy',
                 '-c:a', 'copy',
@@ -77,7 +81,7 @@ class Camera:
             logger.warning(f"RTSP stream ready here: {rtsp_stream}")
 
         if self.rtmp:
-            rtmp_stream = f'rtmp://{config.rtmp_host}:1936/live/{self.name}'
+            rtmp_stream = f'rtmp://{self.config.rtmp_host}:1936/live/{self.name}'
             rtmp_cmd = ['-c:v', 'copy',
                 '-an',
                 '-f', 'flv',
@@ -89,12 +93,12 @@ class Camera:
         if self.record:
             rec_cmd = [
             '-f', 'segment',
-            '-segment_time', f'{config.record_segment_length}',
+            '-segment_time', f'{self.config.record_segment_length}',
             '-segment_atclocktime', '1',
             '-segment_format', self.format,
             '-reset_timestamps', '1',
             '-strftime', '1',
-            f'{os.path.join(config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.{self.format}']   
+            f'{os.path.join(self.config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.{self.format}']   
 
             cmd = cmd + self.inputs + rec_cmd
             logger.warning(f"Setting up recording")    
@@ -111,6 +115,19 @@ class Camera:
             return False
         
         return True
+    
+    def autoRecord(self):
+        
+        try:
+            self.timer.cancel()
+        except:
+            self.timer = None
+        
+        if not self.hasStarted():
+            self.start()
+        
+        self.timer = Timer(30.0, self.kill)
+        self.timer.start()
 
     def kill(self):
 

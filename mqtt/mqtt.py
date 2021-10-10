@@ -12,7 +12,6 @@ class Mqtt:
         logger.warning("Connected with result code "+str(rc))
 
     def on_publish(self, client,userdata,result):
-        print("Data published")
         pass
 
     def on_message(self, client, userdata, message):

@@ -8,13 +8,14 @@ logger = logging.getLogger(__name__)
 
 class AlarmServer(threading.Thread):
 
-    def __init__(self, port, mqtt_client):
+    def __init__(self, port, mqtt_client, cameras):
 
         threading.Thread.__init__(self)
         self.daemon = True
 
         self.port = port
         self.mqtt_client = mqtt_client
+        self.cameras = cameras
 
         self.start()
     
@@ -32,7 +33,7 @@ class AlarmServer(threading.Thread):
                 head, version, session, sequence_number, msgid, len_data = struct.unpack(
                     "BB2xII2xHI", conn.recv(20)
                 )
-                sleep(0.1)  # Just for recive whole packet
+                sleep(0.1)  # Just for receive whole packet
                 data = conn.recv(len_data)
                 conn.close()
                 
@@ -40,6 +41,11 @@ class AlarmServer(threading.Thread):
 
                 device_name = jdata['SerialID']
                 mqtt_topic = 'cameras/' + device_name
+                
+                for cam in self.cameras:
+                    if cam.deviceid == device_name:
+                        cam.autoRecord()
+                        logger.warn("Auto Recording")
 
                 self.mqtt_client.publish(mqtt_topic,json.dumps(jdata))  
 
