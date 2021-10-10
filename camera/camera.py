@@ -126,7 +126,7 @@ class Camera:
         if not self.hasStarted():
             self.start()
         
-        self.timer = Timer(30.0, self.kill)
+        self.timer = Timer(self.config.alarmserver_record_length, self.kill)
         self.timer.start()
 
     def kill(self):

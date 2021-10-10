@@ -21,6 +21,7 @@ class Config:
         
         self.alarmserver_port = settings['alarmserver']['port']
         self.alarmserver_enabled = settings['alarmserver']['enabled']
+        self.alarmserver_record_length = settings['alarmserver']['record_length']
         
         self.Cameras = []
 
