@@ -45,7 +45,6 @@ class AlarmServer(threading.Thread):
                 for cam in self.cameras:
                     if cam.deviceid == device_name:
                         cam.autoRecord()
-                        logger.warn("Auto Recording")
 
                 self.mqtt_client.publish(mqtt_topic,json.dumps(jdata))  
 
