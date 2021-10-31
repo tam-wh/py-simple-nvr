@@ -98,7 +98,7 @@ class Camera:
             '-segment_format', self.format,
             '-reset_timestamps', '1',
             '-strftime', '1',
-            f'{os.path.join(self.config.record_dir, self.name, )}_%Y%m%d_%H-%M-%S.{self.format}']   
+            f'{os.path.join(self.config.record_dir, "%Y%m%d_%H-%M-%S" )}_{self.name}.{self.format}']   
 
             cmd = cmd + self.inputs + rec_cmd
             logger.warning(f"Setting up recording")    
